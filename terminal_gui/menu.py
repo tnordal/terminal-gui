@@ -95,6 +95,8 @@ class HorizontalBoxes(urwid.Columns):
         if self.menu_stack:
             self.contents[:] = self.menu_stack.pop()
             self.focus_position = len(self.contents) - 1
+        else:
+            raise urwid.ExitMainLoop()
 
 top = HorizontalBoxes()
 
