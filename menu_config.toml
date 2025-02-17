@@ -1,4 +1,4 @@
-menu_type = "horizontal"
+menu_type = "cascading"
 
 [menu_structure]
 heading = "Main Menu"

@@ -98,6 +98,39 @@ class HorizontalBoxes(urwid.Columns):
         else:
             raise urwid.ExitMainLoop()
 
+class CascadingBoxes(urwid.WidgetPlaceholder):
+    max_box_levels = 4
+
+    def __init__(self, box: urwid.Widget) -> None:
+        super().__init__(urwid.SolidFill("/"))
+        self.box_level = 0
+        self.open_box(box)
+
+    def open_box(self, box: urwid.Widget) -> None:
+        self.original_widget = urwid.Overlay(
+            urwid.LineBox(box),
+            self.original_widget,
+            align=urwid.CENTER,
+            width=(urwid.RELATIVE, 80),
+            valign=urwid.MIDDLE,
+            height=(urwid.RELATIVE, 80),
+            min_width=24,
+            min_height=8,
+            left=self.box_level * 3,
+            right=(self.max_box_levels - self.box_level - 1) * 3,
+            top=self.box_level * 2,
+            bottom=(self.max_box_levels - self.box_level - 1) * 2,
+        )
+        self.box_level += 1
+
+    def keypress(self, size, key: str) -> str | None:
+        if key == "esc" and self.box_level > 1:
+            self.original_widget = self.original_widget[0]
+            self.box_level -= 1
+            return None
+
+        return super().keypress(size, key)
+
 top = HorizontalBoxes()
 
 class Menu:
@@ -145,6 +178,54 @@ class Menu:
         top.open_box(menu_top.menu)
         return top
 
+    def create_cascading_menu(self, structure):
+        def menu_button(
+            caption: str | tuple[Hashable, str] | list[str | tuple[Hashable, str]],
+            callback: Callable[[urwid.Button], typing.Any],
+        ) -> urwid.AttrMap:
+            button = urwid.Button(caption, on_press=callback)
+            return urwid.AttrMap(button, None, focus_map="reversed")
+
+        def sub_menu(
+            caption: str | tuple[Hashable, str] | list[str | tuple[Hashable, str]],
+            choices: Iterable[urwid.Widget],
+        ) -> urwid.Widget:
+            contents = menu(caption, choices)
+
+            def open_menu(button: urwid.Button) -> None:
+                return top.open_box(contents)
+
+            return menu_button([caption, "..."], open_menu)
+
+        def menu(
+            title: str | tuple[Hashable, str] | list[str | tuple[Hashable, str]],
+            choices: Iterable[urwid.Widget],
+        ) -> urwid.ListBox:
+            body = [urwid.Text(title), urwid.Divider(), *choices]
+            return urwid.ListBox(urwid.SimpleFocusListWalker(body))
+
+        def item_chosen(button: urwid.Button) -> None:
+            response = urwid.Text(["You chose ", button.label, "\n"])
+            done = menu_button("Ok", exit_program)
+            top.open_box(urwid.Filler(urwid.Pile([response, done])))
+
+        def exit_program(button: urwid.Button) -> typing.NoReturn:
+            raise urwid.ExitMainLoop()
+
+        def build_menu(structure):
+            choices = []
+            for item in structure['menu']:
+                if 'submenu' in item:
+                    submenu = sub_menu(item['name'], build_menu({'menu': item['submenu']}))
+                    choices.append(submenu)
+                else:
+                    choices.append(menu_button(item['name'], item_chosen))
+            return choices
+
+        menu_top = menu(structure['heading'], build_menu(structure))
+        top = CascadingBoxes(menu_top)
+        return top
+
     def item_chosen(self, button, item):
         if 'submenu' in item:
             self.menu_stack.append(self.main.original_widget)
@@ -160,6 +241,8 @@ class Menu:
         if key == 'esc':
             if self.menu_type == 'horizontal':
                 top.go_back()
+            elif self.menu_type == 'cascading':
+                top.keypress(None, key)
             elif self.menu_stack:
                 self.main.original_widget = self.menu_stack.pop()
             else:
