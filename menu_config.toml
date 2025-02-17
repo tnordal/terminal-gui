@@ -1,0 +1,19 @@
+menu_type = "simple"
+
+[menu_structure]
+heading = "Main Menu"
+menu = [
+    { name = "Menu 1", submenu = [
+        { name = "Sub menu 1" },
+        { name = "Sub menu 2" }
+    ]},
+    { name = "Menu 2", submenu = [
+        { name = "Sub menu 1", submenu = [
+            { name = "SubSub menu 1" },
+            { name = "SubSub menu 2" }
+        ]}
+    ]},
+    { name = "Menu 3", submenu = [
+        { name = "Sub menu 1" }
+    ]}
+]
