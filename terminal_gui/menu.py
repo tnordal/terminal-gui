@@ -4,9 +4,12 @@ import typing
 
 import urwid
 import toml
+from .config import load_config, get_menu_colors
 
 if typing.TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable
+
+focus_map = {"heading": "focus heading", "options": "focus options", "line": "focus line"}
 
 class MenuButton(urwid.Button):
     def __init__(
@@ -61,18 +64,6 @@ class Choice(urwid.WidgetWrap[MenuButton]):
 
 def exit_program(key):
     raise urwid.ExitMainLoop()
-
-palette = [
-    (None, "light gray", "black"),
-    ("heading", "black", "light gray"),
-    ("line", "black", "light gray"),
-    ("options", "dark gray", "black"),
-    ("focus heading", "white", "dark red"),
-    ("focus line", "black", "dark red"),
-    ("focus options", "black", "light gray"),
-    ("selected", "white", "dark blue"),
-]
-focus_map = {"heading": "focus heading", "options": "focus options", "line": "focus line"}
 
 class HorizontalBoxes(urwid.Columns):
     def __init__(self) -> None:
@@ -138,6 +129,7 @@ class Menu:
         self.config = self.load_config(config_file)
         self.menu_type = self.config.get('menu_type', 'simple')
         self.menu_structure = self.config.get('menu_structure', {})
+        self.menu_colors = get_menu_colors(self.config)
         self.main = None
         self.menu_stack = []
 
@@ -240,9 +232,15 @@ class Menu:
     def keypress(self, key):
         if key == 'esc':
             if self.menu_type == 'horizontal':
-                top.go_back()
+                try:
+                    top.go_back()
+                except (IndexError, AttributeError):
+                    raise urwid.ExitMainLoop()
             elif self.menu_type == 'cascading':
-                top.keypress(None, key)
+                try:
+                    top.keypress(None, key)
+                except (IndexError, AttributeError):
+                    raise urwid.ExitMainLoop()
             elif self.menu_stack:
                 self.main.original_widget = self.menu_stack.pop()
             else:
@@ -261,6 +259,16 @@ def main():
                                align='center', width=('relative', 60),
                                valign='middle', height=('relative', 60),
                                min_width=20, min_height=9)
+    palette = [
+        (None, menu.menu_colors['text'], menu.menu_colors['background']),
+        ("heading", menu.menu_colors['text'], menu.menu_colors['background']),
+        ("line", menu.menu_colors['text'], menu.menu_colors['background']),
+        ("options", menu.menu_colors['text'], menu.menu_colors['background']),
+        ("focus heading", menu.menu_colors['highlight'], menu.menu_colors['background']),
+        ("focus line", menu.menu_colors['highlight'], menu.menu_colors['background']),
+        ("focus options", menu.menu_colors['highlight'], menu.menu_colors['background']),
+        ("selected", menu.menu_colors['highlight'], menu.menu_colors['background']),
+    ]
     urwid.MainLoop(top_widget, palette=palette, unhandled_input=menu.keypress).run()
 
 if __name__ == '__main__':

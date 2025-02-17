@@ -17,3 +17,8 @@ menu = [
         { name = "Sub menu 1" }
     ]}
 ]
+
+[menu_colors]
+background = "black"
+text = "light gray"
+highlight = "dark red"
