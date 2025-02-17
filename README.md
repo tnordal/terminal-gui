@@ -7,6 +7,7 @@ Terminal GUI is a Python package for creating terminal-based menu systems and co
 - Create a menu based on a config file (TOML or YAML).
 - Create a config file based on user input.
 - Navigate the menu using arrow keys or shortcuts.
+- Read configuration from TOML files.
 
 ## Installation
 
@@ -35,6 +36,15 @@ from terminal_gui.config import load_config, save_config
 
 config_data = load_config('config.toml')
 save_config('config.toml', config_data)
+```
+
+### Reading TOML Configuration Files
+
+```python
+from terminal_gui.config import read_toml
+
+config_data = read_toml('config.toml')
+print(config_data)
 ```
 
 ## Running Tests
