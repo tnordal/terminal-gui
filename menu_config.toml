@@ -1,4 +1,4 @@
-menu_type = "simple"
+menu_type = "horizontal"
 
 [menu_structure]
 heading = "Main Menu"
@@ -7,7 +7,7 @@ menu = [
         { name = "Sub menu 1" },
         { name = "Sub menu 2" }
     ]},
-    { name = "Menu 2", submenu = [
+    { name = "Menu 222", submenu = [
         { name = "Sub menu 1", submenu = [
             { name = "SubSub menu 1" },
             { name = "SubSub menu 2" }
