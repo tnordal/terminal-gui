@@ -7,6 +7,7 @@ class Menu:
         self.menu_type = self.config.get('menu_type', 'simple')
         self.menu_structure = self.config.get('menu_structure', {})
         self.main = None
+        self.menu_stack = []
 
     def load_config(self, file_path):
         with open(file_path, 'r') as file:
@@ -28,10 +29,14 @@ class Menu:
             button = urwid.Button(item['name'])
             urwid.connect_signal(button, 'click', self.item_chosen, item)
             body.append(urwid.AttrMap(button, None, focus_map='reversed'))
+        exit_button = urwid.Button('Exit')
+        urwid.connect_signal(exit_button, 'click', self.exit_program)
+        body.append(urwid.AttrMap(exit_button, None, focus_map='reversed'))
         return urwid.ListBox(urwid.SimpleFocusListWalker(body))
 
     def item_chosen(self, button, item):
         if 'submenu' in item:
+            self.menu_stack.append(self.main.original_widget)
             submenu = self.create_simple_menu({'heading': item['name'], 'menu': item['submenu']})
             self.main.original_widget = urwid.Padding(submenu, left=2, right=2)
         else:
@@ -39,6 +44,15 @@ class Menu:
             done = urwid.Button(u'Ok')
             urwid.connect_signal(done, 'click', self.exit_program)
             self.main.original_widget = urwid.Padding(urwid.Filler(urwid.Pile([response, done])), left=2, right=2)
+
+    def keypress(self, key):
+        if key == 'esc':
+            if self.menu_stack:
+                self.main.original_widget = self.menu_stack.pop()
+            else:
+                raise urwid.ExitMainLoop()
+        else:
+            return key
 
     def exit_program(self, button):
         raise urwid.ExitMainLoop()
@@ -51,7 +65,7 @@ def main():
                         align='center', width=('relative', 60),
                         valign='middle', height=('relative', 60),
                         min_width=20, min_height=9)
-    urwid.MainLoop(top, palette=[('reversed', 'standout', '')]).run()
+    urwid.MainLoop(top, palette=[('reversed', 'standout', '')], unhandled_input=menu.keypress).run()
 
 if __name__ == '__main__':
     main()
