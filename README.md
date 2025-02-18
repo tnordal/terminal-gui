@@ -1,6 +1,6 @@
 # Terminal GUI
 
-Terminal GUI is a Python package for creating sophisticated terminal-based menu systems with support for different menu styles, nested submenus, and customizable colors.
+Terminal GUI is a Python package for creating sophisticated terminal-based menu systems with support for different menu styles, nested submenus, command execution, and customizable colors.
 
 ## Features
 
@@ -9,6 +9,10 @@ Terminal GUI is a Python package for creating sophisticated terminal-based menu 
   - Horizontal: Expanding horizontal menu system
   - Cascading: Overlapping box style menu
 - Nested submenus support
+- Command execution support:
+  - Shell commands
+  - Python scripts/modules
+  - Desktop applications
 - Customizable colors using terminal colors or RGB hex values
 - Keyboard navigation (arrow keys, ESC)
 - TOML-based configuration
@@ -39,20 +43,62 @@ menu_type = "horizontal"
 
 [menu_structure]
 heading = "Main Menu"
-menu = [
-    { name = "Menu 1", submenu = [
-        { name = "Sub menu 1" },
-        { name = "Sub menu 2" },
-    ] },
-    { name = "Menu 2", submenu = [
-        { name = "Sub menu 1", submenu = [
-            { name = "SubSub menu 1" },
-            { name = "SubSub menu 2" },
-        ] },
-    ] },
-]
 
-# Color Configuration
+# Example menu with command execution
+[[menu_structure.menu]]
+name = "Development"
+[[menu_structure.menu.submenu]]
+name = "Run Python Script"
+command.type = "python"
+command.value = "example_script"
+
+[[menu_structure.menu.submenu]]
+name = "Run Tests"
+command.type = "python"
+command.value = "unittest discover tests"
+
+[[menu_structure.menu]]
+name = "System"
+[[menu_structure.menu.submenu]]
+name = "System Monitor"
+command.type = "program"
+command.value = "gnome-system-monitor"
+
+[[menu_structure.menu]]
+name = "Scripts"
+[[menu_structure.menu.submenu]]
+name = "Backup Data"
+command.type = "shell"
+command.value = "tar -czf backup.tar.gz /path/to/data"
+command.working_dir = "/home/backup"
+```
+
+### Command Types
+
+The menu system supports three types of commands:
+
+1. Shell Commands
+   ```toml
+   command.type = "shell"
+   command.value = "shell command here"
+   command.working_dir = "optional/working/directory"  # Optional
+   ```
+
+2. Python Commands
+   ```toml
+   command.type = "python"
+   command.value = "module_name or script.py"
+   ```
+
+3. Program Commands
+   ```toml
+   command.type = "program"
+   command.value = "program-name"
+   ```
+
+### Color Configuration
+
+```toml
 [menu_colors]
 # Default colors
 default_fg = "black"     # Default text color
@@ -81,7 +127,7 @@ focus_heading_bg = "dark blue" # Focused heading background color
 ## Navigation
 
 - Arrow keys: Navigate through menu items
-- Enter: Select menu item
+- Enter: Select menu item/execute command
 - ESC: Go back/exit submenu
 - Mouse: Click to select (if terminal supports it)
 
