@@ -8,7 +8,7 @@ from pathlib import Path
 from .config import load_config, get_menu_colors
 
 def setup_logger():
-    """Set up logging to both file and console"""
+    """Set up logging to file only"""
     try:
         # Create logs directory if it doesn't exist
         log_dir = os.path.expanduser('~/.terminal_gui/logs')
@@ -24,22 +24,14 @@ def setup_logger():
         for handler in logger.handlers[:]:
             logger.removeHandler(handler)
         
-        # File handler - debug level
+        # File handler only - no console output
         fh = logging.FileHandler(log_file, mode='w')
         fh.setLevel(logging.DEBUG)
-        fh_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        fh.setFormatter(fh_formatter)
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        fh.setFormatter(formatter)
         logger.addHandler(fh)
         
-        # Also log to console for immediate feedback
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        ch_formatter = logging.Formatter('%(levelname)s - %(message)s')
-        ch.setFormatter(ch_formatter)
-        logger.addHandler(ch)
-        
-        # Log initial setup message to verify logging is working
-        logger.debug('Logger initialized successfully')
+        logger.debug('Logger initialized - file only mode')
         return logger
         
     except Exception as e:
@@ -50,12 +42,13 @@ def setup_logger():
 logger = setup_logger()
 
 def debug_log(message: str):
-    """Helper function to log debug messages"""
+    """Helper function to log debug messages to file only"""
     if logger:
         try:
             logger.debug(message)
         except Exception as e:
-            print(f"Error writing to log: {str(e)}")
+            # Silently fail to avoid console output
+            pass
 
 def exit_program(button=None):
     raise urwid.ExitMainLoop()
