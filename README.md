@@ -136,7 +136,7 @@ focus_heading_bg = "dark blue" # Focused heading background color
 To run the tests:
 
 ```bash
-pytest
+python -m pytest -v
 ```
 
 ## License
