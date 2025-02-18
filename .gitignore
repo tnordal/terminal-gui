@@ -9,3 +9,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Developer files
+usefulls-commands.md
