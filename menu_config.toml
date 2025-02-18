@@ -7,28 +7,44 @@ menu_type = "horizontal"
 
 [menu_structure]
 heading = "Main Menu"
-menu = [
-    { name = "Menu 1", submenu = [
-        { name = "Sub menu 1" },
-        { name = "Sub menu 2" },
-    ] },
-    { name = "Menu 222", submenu = [
-        { name = "Sub menu 1", submenu = [
-            { name = "SubSub menu 1" },
-            { name = "SubSub menu 2" },
-        ] },
-    ] },
-    { name = "Menu 3", submenu = [
-        { name = "Sub menu 1" },
-    ] },
-]
 
-# Color Configuration
-# Available colors for any option:
-# 1. Basic terminal colors:
-#    - black, dark red, dark green, brown, dark blue, dark magenta, dark cyan, light gray
-#    - dark gray, light red, light green, yellow, light blue, light magenta, light cyan, white
-# 2. RGB colors in hex format: e.g., "#ff0000" for red
+[[menu_structure.menu]]
+name = "Development"
+[[menu_structure.menu.submenu]]
+name = "Run Python Script"
+command.type = "python"
+command.value = "example_script"
+
+[[menu_structure.menu.submenu]]
+name = "Run Tests"
+command.type = "python"
+command.value = "unittest discover tests"
+
+[[menu_structure.menu]]
+name = "System"
+[[menu_structure.menu.submenu]]
+name = "System Monitor"
+command.type = "program"
+command.value = "gnome-system-monitor"
+
+[[menu_structure.menu.submenu]]
+name = "Terminal"
+command.type = "program"
+command.value = "gnome-terminal"
+
+[[menu_structure.menu]]
+name = "Scripts"
+[[menu_structure.menu.submenu]]
+name = "Backup Data"
+command.type = "shell"
+command.value = "tar -czf backup.tar.gz /path/to/data"
+command.working_dir = "/home/backup"
+
+[[menu_structure.menu.submenu]]
+name = "Update System"
+command.type = "shell"
+command.value = "sudo apt update && sudo apt upgrade -y"
+
 [menu_colors]
 # Default colors (used when specific colors are not set)
 default_fg = "black"     # Default text color

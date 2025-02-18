@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import typing
 import urwid
-from .utils import exit_program  # Add direct import of exit_program
+from .utils import exit_program
+from .command_executor import CommandExecutor
 
 if typing.TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable
+    from typing import Optional
 
 focus_map = {"heading": "focus heading", "options": "focus options", "line": "focus line"}
 
@@ -59,6 +61,34 @@ class Choice(urwid.WidgetWrap[MenuButton]):
     def item_chosen(self, button: MenuButton) -> None:
         from .menu_layout import top  # Keep local import to avoid circular import
         response = urwid.Text(["  You chose ", self.caption, "\n"])
+        done = MenuButton("Ok", exit_program)
+        response_box = urwid.Filler(urwid.Pile([response, done]))
+        top.open_box(urwid.AttrMap(response_box, "options"))
+
+class CommandChoice(Choice):
+    def __init__(
+        self,
+        caption: str | tuple[Hashable, str] | list[str | tuple[Hashable, str]],
+        command_type: str,
+        command: str,
+        working_dir: Optional[str] = None,
+    ) -> None:
+        super().__init__(caption)
+        self.command_type = command_type
+        self.command = command
+        self.working_dir = working_dir
+
+    def item_chosen(self, button: MenuButton) -> None:
+        from .menu_layout import top  # Keep local import to avoid circular import
+        
+        # Execute the command
+        try:
+            CommandExecutor.execute_command(self.command_type, self.command, self.working_dir)
+            message = f"  Executing command: {self.command}\n"
+        except Exception as e:
+            message = f"  Error executing command: {str(e)}\n"
+        
+        response = urwid.Text([message])
         done = MenuButton("Ok", exit_program)
         response_box = urwid.Filler(urwid.Pile([response, done]))
         top.open_box(urwid.AttrMap(response_box, "options"))

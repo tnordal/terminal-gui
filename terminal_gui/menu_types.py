@@ -4,7 +4,7 @@ import typing
 import urwid
 from collections.abc import Callable, Hashable, Iterable
 
-from .menu_components import SubMenu, Choice
+from .menu_components import SubMenu, Choice, CommandChoice
 from .menu_layout import CascadingBoxes, top
 from .utils import exit_program
 
@@ -19,14 +19,25 @@ def create_simple_menu(structure, item_chosen_callback, exit_callback):
     body.append(urwid.AttrMap(exit_button, None, focus_map='reversed'))
     return urwid.ListBox(urwid.SimpleFocusListWalker(body))
 
+def create_menu_item(item):
+    if 'command' in item:
+        return CommandChoice(
+            item['name'],
+            item['command']['type'],
+            item['command']['value'],
+            item['command'].get('working_dir')
+        )
+    return Choice(item['name'])
+
 def create_horizontal_menu(structure):
     choices = []
     for item in structure['menu']:
         if 'submenu' in item:
-            submenu = SubMenu(item['name'], [Choice(subitem['name']) for subitem in item['submenu']])
+            submenu_choices = [create_menu_item(subitem) for subitem in item['submenu']]
+            submenu = SubMenu(item['name'], submenu_choices)
             choices.append(submenu)
         else:
-            choices.append(Choice(item['name']))
+            choices.append(create_menu_item(item))
     menu_top = SubMenu(structure['heading'], choices)
     top.open_box(menu_top.menu)
     return top
@@ -57,11 +68,6 @@ def create_cascading_menu(structure):
         body = [urwid.Text(title), urwid.Divider(), *choices]
         return urwid.ListBox(urwid.SimpleFocusListWalker(body))
 
-    def item_chosen(button: urwid.Button) -> None:
-        response = urwid.Text(["You chose ", button.label, "\n"])
-        done = menu_button("Ok", exit_program)
-        top.open_box(urwid.Filler(urwid.Pile([response, done])))
-
     def build_menu(structure):
         choices = []
         for item in structure['menu']:
@@ -69,8 +75,24 @@ def create_cascading_menu(structure):
                 submenu = sub_menu(item['name'], build_menu({'menu': item['submenu']}))
                 choices.append(submenu)
             else:
-                choices.append(menu_button(item['name'], item_chosen))
+                if 'command' in item:
+                    choices.append(
+                        CommandChoice(
+                            item['name'],
+                            item['command']['type'],
+                            item['command']['value'],
+                            item['command'].get('working_dir')
+                        )
+                    )
+                else:
+                    choices.append(menu_button(item['name'], item_chosen))
+
         return choices
+
+    def item_chosen(button: urwid.Button) -> None:
+        response = urwid.Text(["You chose ", button.label, "\n"])
+        done = menu_button("Ok", exit_program)
+        top.open_box(urwid.Filler(urwid.Pile([response, done])))
 
     menu_top = menu(structure['heading'], build_menu(structure))
     return CascadingBoxes(menu_top)
