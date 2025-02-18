@@ -259,15 +259,16 @@ def main():
                                align='center', width=('relative', 60),
                                valign='middle', height=('relative', 60),
                                min_width=20, min_height=9)
+    colors = menu.menu_colors
     palette = [
-        (None, menu.menu_colors['text'], menu.menu_colors['background']),
-        ("heading", menu.menu_colors['text'], menu.menu_colors['background']),
-        ("line", menu.menu_colors['text'], menu.menu_colors['background']),
-        ("options", menu.menu_colors['text'], menu.menu_colors['background']),
-        ("focus heading", menu.menu_colors['highlight'], menu.menu_colors['background']),
-        ("focus line", menu.menu_colors['highlight'], menu.menu_colors['background']),
-        ("focus options", menu.menu_colors['highlight'], menu.menu_colors['background']),
-        ("selected", menu.menu_colors['highlight'], menu.menu_colors['background']),
+        (None, colors.get('default_fg', 'black'), colors.get('default_bg', 'light gray')),
+        ("heading", colors.get('heading_fg', 'black'), colors.get('heading_bg', 'light gray')),
+        ("line", colors.get('line_fg', 'black'), colors.get('line_bg', 'light gray')),
+        ("options", colors.get('options_fg', 'black'), colors.get('options_bg', 'light gray')),
+        ("focus heading", colors.get('focus_heading_fg', 'white'), colors.get('focus_heading_bg', 'dark blue')),
+        ("focus line", colors.get('focus_line_fg', 'white'), colors.get('focus_line_bg', 'dark blue')),
+        ("focus options", colors.get('focus_options_fg', 'white'), colors.get('focus_options_bg', 'dark blue')),
+        ("selected", colors.get('selected_fg', 'white'), colors.get('selected_bg', 'dark blue')),
     ]
     urwid.MainLoop(top_widget, palette=palette, unhandled_input=menu.keypress).run()
 

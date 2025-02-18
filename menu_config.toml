@@ -1,4 +1,8 @@
-# menu_type = "cascading"
+# Configuration for terminal menu
+# menu_type options:
+# - "horizontal" (default): Horizontal expanding menu
+# - "cascading": Overlapping box style menu
+# - "simple": Basic vertical menu
 menu_type = "horizontal"
 
 [menu_structure]
@@ -19,7 +23,35 @@ menu = [
     ]}
 ]
 
+# Color Configuration
+# Available colors for any option:
+# 1. Basic terminal colors:
+#    - black, dark red, dark green, brown, dark blue, dark magenta, dark cyan, light gray
+#    - dark gray, light red, light green, yellow, light blue, light magenta, light cyan, white
+# 2. RGB colors in hex format: e.g., "#ff0000" for red
 [menu_colors]
-background = "black"
-text = "light red"
-highlight = "dark red"
+# Default colors (used when specific colors are not set)
+default_fg = "black"          # Default text color
+default_bg = "dark gray"     # Default background color
+
+# Heading section colors
+heading_fg = "light blue"           # Heading text color
+heading_bg = "light gray"           # Heading background color
+focus_heading_fg = "dark red"       # Focused heading text color
+focus_heading_bg = "dark blue"      # Focused heading background color
+
+# Separator line colors
+line_fg = "dark red"            # Line color
+line_bg = "white"               # Line background color
+focus_line_fg = "light red"      # Focused line color
+focus_line_bg = "dark blue"  # Focused line background color
+
+# Menu options colors
+options_fg = "black"            # Menu options text color
+options_bg = "light gray"       # Menu options background color
+focus_options_fg = "white"      # Focused option text color
+focus_options_bg = "dark blue"  # Focused option background color
+
+# Selected item colors
+selected_fg = "dark red"        # Selected item text color
+selected_bg = "dark blue"       # Selected item background color
