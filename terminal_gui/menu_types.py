@@ -46,11 +46,13 @@ def create_cascading_menu(structure):
     class MenuButton(urwid.Button):
         def __init__(self, caption, callback):
             super().__init__("")
-            self._w = urwid.SelectableIcon(['  ', caption], 2)
+            urwid.Button._init(self)  # Initialize parent properly
+            self._w = urwid.SelectableIcon([caption], 0)
+            self.caption = caption  # Store caption for reference
             self.callback = callback
 
         def keypress(self, size, key):
-            debug_log(f"MenuButton keypress: size={size}, key={key}")
+            debug_log(f"MenuButton keypress: size={size}, key={key}, caption={self.caption}")
             if key in ('enter', 'right'):
                 debug_log(f"MenuButton executing callback for key: {key}")
                 self.callback(self)
@@ -59,17 +61,23 @@ def create_cascading_menu(structure):
             return key
 
         def mouse_event(self, size, event, button, col, row, focus):
-            debug_log(f"MenuButton mouse_event: size={size}, event={event}, button={button}, col={col}, row={row}, focus={focus}")
-            if event == 'mouse press':
+            debug_log(f"MenuButton mouse_event: event={event}, caption={self.caption}")
+            if event == 'mouse press' and button == 1:
                 debug_log("MenuButton executing callback for mouse press")
                 self.callback(self)
                 return True
             return False
 
+        @property
+        def label(self):
+            """Provide label property for consistent access"""
+            return self.caption
+
     def menu_button(
         caption: str | tuple[Hashable, str] | list[str | tuple[Hashable, str]],
         callback: Callable[[urwid.Button], typing.Any],
     ) -> urwid.AttrMap:
+        debug_log(f"Creating menu button with caption: {caption}")
         button = MenuButton(caption, callback)
         return urwid.AttrMap(button, 'options', focus_map='focus_options')
 
@@ -83,91 +91,91 @@ def create_cascading_menu(structure):
             debug_log(f"Opening submenu: {caption}")
             top.open_box(contents)
 
-        button = MenuButton([caption, " ..."], open_menu)
-        return urwid.AttrMap(button, 'options', focus_map='focus_options')
+        return menu_button(f"{caption} ...", open_menu)
 
     class MenuListBox(urwid.ListBox):
         def keypress(self, size, key):
             debug_log(f"MenuListBox keypress: size={size}, key={key}")
-            if key in ('up', 'down', 'left', 'right', 'enter'):
-                # First let the parent handle navigation
-                debug_log("MenuListBox delegating to parent")
-                key = super().keypress(size, key)
-                debug_log(f"Parent returned key: {key}")
-                if key is None:
-                    return None
-
-                if key in ('up', 'down'):
-                    # Handle vertical navigation if parent didn't
-                    current_pos = self.focus_position
-                    debug_log(f"Current position: {current_pos}")
-                    if key == 'up':
-                        # Try to find the previous selectable widget
-                        pos = current_pos - 1
-                        while pos >= 0:
-                            widget = self.body[pos]
-                            debug_log(f"Checking widget at pos {pos}: {widget}")
-                            if hasattr(widget, 'selectable') and widget.selectable():
-                                self.focus_position = pos
-                                debug_log(f"Found selectable widget at pos {pos}")
-                                return None
-                            pos -= 1
-                    else:  # down
-                        # Try to find the next selectable widget
-                        pos = current_pos + 1
-                        while pos < len(self.body):
-                            widget = self.body[pos]
-                            debug_log(f"Checking widget at pos {pos}: {widget}")
-                            if hasattr(widget, 'selectable') and widget.selectable():
-                                self.focus_position = pos
-                                debug_log(f"Found selectable widget at pos {pos}")
-                                return None
-                            pos += 1
-                elif key in ('enter', 'right'):
-                    # Forward to focused widget
-                    focused = self.focus
-                    debug_log(f"Forwarding {key} to focused widget: {focused}")
-                    if focused and hasattr(focused, 'keypress'):
-                        key = focused.keypress(size, key)
-                        if key is None:
+            
+            # Handle vertical navigation
+            if key in ('up', 'down'):
+                current_pos = self.focus_position
+                debug_log(f"Current focus position: {current_pos}")
+                
+                if key == 'up':
+                    # Find previous selectable widget
+                    pos = current_pos - 1
+                    while pos >= 0:
+                        widget = self.body[pos]
+                        if hasattr(widget, 'selectable') and widget.selectable():
+                            self.focus_position = pos
+                            debug_log(f"Moving focus up to position {pos}")
                             return None
-                elif key == 'left':
-                    # Let the parent handle closing the submenu
-                    debug_log("Returning left key to parent for submenu closing")
-                    return key
+                        pos -= 1
+                else:  # down
+                    # Find next selectable widget
+                    pos = current_pos + 1
+                    while pos < len(self.body):
+                        widget = self.body[pos]
+                        if hasattr(widget, 'selectable') and widget.selectable():
+                            self.focus_position = pos
+                            debug_log(f"Moving focus down to position {pos}")
+                            return None
+                        pos += 1
 
-            # Return unhandled keys
-            debug_log(f"MenuListBox returning unhandled key: {key}")
+                # If we reach here, try wrapping around
+                if key == 'up':
+                    for pos in range(len(self.body) - 1, -1, -1):
+                        widget = self.body[pos]
+                        if hasattr(widget, 'selectable') and widget.selectable():
+                            self.focus_position = pos
+                            debug_log(f"Wrapping to bottom at position {pos}")
+                            return None
+                else:
+                    for pos in range(len(self.body)):
+                        widget = self.body[pos]
+                        if hasattr(widget, 'selectable') and widget.selectable():
+                            self.focus_position = pos
+                            debug_log(f"Wrapping to top at position {pos}")
+                            return None
+
+            # Handle enter/right/left keys
+            elif key in ('enter', 'right'):
+                focused = self.focus
+                if focused:
+                    debug_log(f"Forwarding {key} to focused widget")
+                    key = focused.keypress(size, key)
+                    if key is None:
+                        return None
+
+            # Pass through left key for menu closing
+            elif key == 'left':
+                debug_log("Returning left key for menu closing")
+                return key
+
             return key
-
-        def mouse_event(self, size, event, button, col, row, focus):
-            debug_log(f"MenuListBox mouse_event: size={size}, event={event}, button={button}, col={col}, row={row}, focus={focus}")
-            return super().mouse_event(size, event, button, col, row, focus)
 
     def menu(
         title: str | tuple[Hashable, str] | list[str | tuple[Hashable, str]],
         choices: Iterable[urwid.Widget],
     ) -> urwid.ListBox:
+        debug_log(f"Creating menu with title: {title}")
+        
         title_widget = urwid.AttrMap(urwid.Text(title), 'heading')
         divider = urwid.AttrMap(urwid.Divider(), 'line')
         
         walker = urwid.SimpleFocusListWalker([title_widget, divider])
         
-        debug_log(f"Creating menu with title: {title}")
-        selectable_found = False
+        # Add menu choices
         for choice in choices:
             walker.append(choice)
-            if not selectable_found and hasattr(choice, 'selectable') and choice.selectable():
-                walker.set_focus(len(walker) - 1)
-                debug_log(f"Setting initial focus to: {choice}")
-                selectable_found = True
-        
-        if not selectable_found:
-            for i, widget in enumerate(walker):
-                if hasattr(widget, 'selectable') and widget.selectable():
-                    walker.set_focus(i)
-                    debug_log(f"Setting fallback focus to widget at position {i}: {widget}")
-                    break
+            
+        # Find first selectable widget for initial focus
+        for i, widget in enumerate(walker):
+            if hasattr(widget, 'selectable') and widget.selectable():
+                walker.set_focus(i)
+                debug_log(f"Setting initial focus to widget at position {i}")
+                break
         
         return MenuListBox(walker)
 
