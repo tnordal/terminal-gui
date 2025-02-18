@@ -36,12 +36,6 @@ class CascadingBoxes(urwid.WidgetPlaceholder):
         super().__init__(urwid.SolidFill("/"))
         self.box_level = 0
         self.open_box(box)
-        # Enable mouse support
-        self.register_mouse_support()
-
-    def register_mouse_support(self) -> None:
-        debug_log("Registering mouse support for CascadingBoxes")
-        urwid.set_mouse_tracking(True)
 
     def open_box(self, box: urwid.Widget) -> None:
         debug_log(f"Opening box at level {self.box_level}")

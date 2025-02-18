@@ -98,7 +98,18 @@ def main():
         )
     
     palette = create_palette(menu.menu_colors)
-    urwid.MainLoop(top_widget, palette=palette, unhandled_input=menu.keypress).run()
+    
+    # Create event loop with mouse support enabled
+    event_loop = urwid.MainLoop(
+        top_widget,
+        palette=palette,
+        unhandled_input=menu.keypress,
+        handle_mouse=True,  # Enable mouse support
+        pop_ups=True  # Enable pop-up handling
+    )
+    
+    # Run the event loop
+    event_loop.run()
 
 if __name__ == '__main__':
     main()
