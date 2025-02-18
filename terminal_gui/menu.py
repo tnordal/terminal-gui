@@ -54,13 +54,22 @@ class Menu:
                     raise urwid.ExitMainLoop()
             elif self.menu_type == 'cascading':
                 try:
-                    top.keypress(None, key)
+                    # Get the current cascading box widget
+                    cascading_box = self.main.original_widget.base_widget
+                    if cascading_box.box_level > 1:
+                        cascading_box.original_widget = cascading_box.original_widget[0]
+                        cascading_box.box_level -= 1
+                    else:
+                        raise urwid.ExitMainLoop()
                 except (IndexError, AttributeError):
                     raise urwid.ExitMainLoop()
             elif self.menu_stack:
                 self.main.original_widget = self.menu_stack.pop()
             else:
                 raise urwid.ExitMainLoop()
+        elif self.menu_type == 'cascading':
+            # Let the cascading menu handle all other keys
+            return key
         else:
             return key
 
@@ -70,18 +79,23 @@ class Menu:
 def main():
     menu = Menu('menu_config.toml')
     menu_widget = menu.create_menu()
-    menu.main = urwid.Padding(menu_widget, left=2, right=2)
     
-    top_widget = urwid.Overlay(
-        menu.main,
-        urwid.SolidFill(u'\N{MEDIUM SHADE}'),
-        align='center',
-        width=('relative', 60),
-        valign='middle',
-        height=('relative', 60),
-        min_width=20,
-        min_height=9
-    )
+    if menu.menu_type == 'cascading':
+        # For cascading menu, don't add extra padding/overlay
+        top_widget = menu_widget
+    else:
+        # For other menu types, use the original padding and overlay
+        menu.main = urwid.Padding(menu_widget, left=2, right=2)
+        top_widget = urwid.Overlay(
+            menu.main,
+            urwid.SolidFill(u'\N{MEDIUM SHADE}'),
+            align='center',
+            width=('relative', 60),
+            valign='middle',
+            height=('relative', 60),
+            min_width=20,
+            min_height=9
+        )
     
     palette = create_palette(menu.menu_colors)
     urwid.MainLoop(top_widget, palette=palette, unhandled_input=menu.keypress).run()

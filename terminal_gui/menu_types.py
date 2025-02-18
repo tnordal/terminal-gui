@@ -43,12 +43,24 @@ def create_horizontal_menu(structure):
     return top
 
 def create_cascading_menu(structure):
+    class MenuButton(urwid.Button):
+        def __init__(self, caption, callback):
+            super().__init__("")
+            self._w = urwid.SelectableIcon(['  ', caption], 2)
+            self.callback = callback
+
+        def keypress(self, size, key):
+            if key in ('enter', 'right'):
+                self.callback(self)
+                return None
+            return key
+
     def menu_button(
         caption: str | tuple[Hashable, str] | list[str | tuple[Hashable, str]],
         callback: Callable[[urwid.Button], typing.Any],
     ) -> urwid.AttrMap:
-        button = urwid.Button(caption, on_press=callback)
-        return urwid.AttrMap(button, None, focus_map="reversed")
+        button = MenuButton(caption, callback)
+        return urwid.AttrMap(button, 'options', focus_map='focus_options')
 
     def sub_menu(
         caption: str | tuple[Hashable, str] | list[str | tuple[Hashable, str]],
@@ -57,16 +69,69 @@ def create_cascading_menu(structure):
         contents = menu(caption, choices)
 
         def open_menu(button: urwid.Button) -> None:
-            return top.open_box(contents)
+            top.open_box(contents)
 
-        return menu_button([caption, "..."], open_menu)
+        button = MenuButton([caption, " ..."], open_menu)
+        return urwid.AttrMap(button, 'options', focus_map='focus_options')
+
+    class MenuListBox(urwid.ListBox):
+        def keypress(self, size, key):
+            if key in ('up', 'down'):
+                key = super().keypress(size, key)
+                if key is None:
+                    return None
+                if key == 'up':
+                    pos = self.focus_position - 1
+                    while pos >= 0:
+                        widget = self.body[pos]
+                        if hasattr(widget, 'selectable') and widget.selectable():
+                            self.focus_position = pos
+                            return None
+                        pos -= 1
+                elif key == 'down':
+                    pos = self.focus_position + 1
+                    while pos < len(self.body):
+                        widget = self.body[pos]
+                        if hasattr(widget, 'selectable') and widget.selectable():
+                            self.focus_position = pos
+                            return None
+                        pos += 1
+            elif key in ('enter', 'right'):
+                focused = self.focus
+                if focused and hasattr(focused, 'keypress'):
+                    key = focused.keypress(size, key)
+                    if key is None:
+                        return None
+            return key
 
     def menu(
         title: str | tuple[Hashable, str] | list[str | tuple[Hashable, str]],
         choices: Iterable[urwid.Widget],
     ) -> urwid.ListBox:
-        body = [urwid.Text(title), urwid.Divider(), *choices]
-        return urwid.ListBox(urwid.SimpleFocusListWalker(body))
+        title_widget = urwid.AttrMap(urwid.Text(title), 'heading')
+        divider = urwid.AttrMap(urwid.Divider(), 'line')
+        
+        walker = urwid.SimpleFocusListWalker([title_widget, divider])
+        
+        selectable_found = False
+        for choice in choices:
+            walker.append(choice)
+            if not selectable_found and hasattr(choice, 'selectable') and choice.selectable():
+                walker.set_focus(len(walker) - 1)
+                selectable_found = True
+        
+        if not selectable_found:
+            for i, widget in enumerate(walker):
+                if hasattr(widget, 'selectable') and widget.selectable():
+                    walker.set_focus(i)
+                    break
+        
+        return MenuListBox(walker)
+
+    def item_chosen(button: urwid.Button) -> None:
+        response = urwid.Text(["You chose ", button.label, "\n"])
+        done = menu_button("Ok", exit_program)
+        top.open_box(urwid.Filler(urwid.Pile([response, done])))
 
     def build_menu(structure):
         choices = []
@@ -74,25 +139,34 @@ def create_cascading_menu(structure):
             if 'submenu' in item:
                 submenu = sub_menu(item['name'], build_menu({'menu': item['submenu']}))
                 choices.append(submenu)
-            else:
-                if 'command' in item:
-                    choices.append(
-                        CommandChoice(
-                            item['name'],
-                            item['command']['type'],
-                            item['command']['value'],
-                            item['command'].get('working_dir')
-                        )
+            elif 'command' in item:
+                def make_command_callback(cmd_type, cmd, work_dir):
+                    def callback(button):
+                        try:
+                            from .command_executor import CommandExecutor
+                            CommandExecutor.execute_command(cmd_type, cmd, work_dir)
+                            message = f"Executing command: {cmd}"
+                        except Exception as e:
+                            message = f"Error executing command: {str(e)}"
+                        response = urwid.Text([message, "\n"])
+                        done = menu_button("Ok", exit_program)
+                        top.open_box(urwid.Filler(urwid.Pile([response, done])))
+                    return callback
+
+                cmd = item['command']
+                command_button = menu_button(
+                    item['name'],
+                    make_command_callback(
+                        cmd['type'],
+                        cmd['value'],
+                        cmd.get('working_dir')
                     )
-                else:
-                    choices.append(menu_button(item['name'], item_chosen))
+                )
+                choices.append(command_button)
+            else:
+                choices.append(menu_button(item['name'], item_chosen))
 
         return choices
-
-    def item_chosen(button: urwid.Button) -> None:
-        response = urwid.Text(["You chose ", button.label, "\n"])
-        done = menu_button("Ok", exit_program)
-        top.open_box(urwid.Filler(urwid.Pile([response, done])))
 
     menu_top = menu(structure['heading'], build_menu(structure))
     return CascadingBoxes(menu_top)
