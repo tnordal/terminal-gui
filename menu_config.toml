@@ -3,7 +3,7 @@
 # - "horizontal" (default): Horizontal expanding menu
 # - "cascading": Overlapping box style menu
 # - "simple": Basic vertical menu
-menu_type = "horizontal"
+menu_type = "cascading"
 
 [menu_structure]
 heading = "Main Menu"
