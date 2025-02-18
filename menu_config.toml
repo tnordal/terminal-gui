@@ -42,7 +42,7 @@ focus_heading_bg = "dark blue" # Focused heading background color
 
 # Separator line colors
 line_fg = "dark red"        # Line color
-line_bg = "white"           # Line background color
+line_bg = "light gray"           # Line background color
 focus_line_fg = "light red" # Focused line color
 focus_line_bg = "dark blue" # Focused line background color
 
