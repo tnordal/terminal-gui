@@ -10,17 +10,17 @@ heading = "Main Menu"
 menu = [
     { name = "Menu 1", submenu = [
         { name = "Sub menu 1" },
-        { name = "Sub menu 2" }
-    ]},
+        { name = "Sub menu 2" },
+    ] },
     { name = "Menu 222", submenu = [
         { name = "Sub menu 1", submenu = [
             { name = "SubSub menu 1" },
-            { name = "SubSub menu 2" }
-        ]}
-    ]},
+            { name = "SubSub menu 2" },
+        ] },
+    ] },
     { name = "Menu 3", submenu = [
-        { name = "Sub menu 1" }
-    ]}
+        { name = "Sub menu 1" },
+    ] },
 ]
 
 # Color Configuration
@@ -31,27 +31,27 @@ menu = [
 # 2. RGB colors in hex format: e.g., "#ff0000" for red
 [menu_colors]
 # Default colors (used when specific colors are not set)
-default_fg = "black"          # Default text color
-default_bg = "dark gray"     # Default background color
+default_fg = "black"     # Default text color
+default_bg = "dark gray" # Default background color
 
 # Heading section colors
-heading_fg = "light blue"           # Heading text color
-heading_bg = "light gray"           # Heading background color
-focus_heading_fg = "dark red"       # Focused heading text color
-focus_heading_bg = "dark blue"      # Focused heading background color
+heading_fg = "light blue"      # Heading text color
+heading_bg = "light gray"      # Heading background color
+focus_heading_fg = "dark red"  # Focused heading text color
+focus_heading_bg = "dark blue" # Focused heading background color
 
 # Separator line colors
-line_fg = "dark red"            # Line color
-line_bg = "white"               # Line background color
-focus_line_fg = "light red"      # Focused line color
-focus_line_bg = "dark blue"  # Focused line background color
+line_fg = "dark red"        # Line color
+line_bg = "white"           # Line background color
+focus_line_fg = "light red" # Focused line color
+focus_line_bg = "dark blue" # Focused line background color
 
 # Menu options colors
-options_fg = "black"            # Menu options text color
-options_bg = "light gray"       # Menu options background color
-focus_options_fg = "white"      # Focused option text color
-focus_options_bg = "dark blue"  # Focused option background color
+options_fg = "black"           # Menu options text color
+options_bg = "light gray"      # Menu options background color
+focus_options_fg = "white"     # Focused option text color
+focus_options_bg = "dark blue" # Focused option background color
 
 # Selected item colors
-selected_fg = "dark red"        # Selected item text color
-selected_bg = "dark blue"       # Selected item background color
+selected_fg = "dark red"  # Selected item text color
+selected_bg = "dark blue" # Selected item background color
