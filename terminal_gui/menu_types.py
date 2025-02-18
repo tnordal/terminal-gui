@@ -45,11 +45,11 @@ def create_horizontal_menu(structure):
 def create_cascading_menu(structure):
     class MenuButton(urwid.Button):
         def __init__(self, caption, callback):
-            super().__init__("")
-            urwid.Button._init(self)  # Initialize parent properly
-            self._w = urwid.SelectableIcon([caption], 0)
+            super().__init__(caption)  # Initialize with caption
             self.caption = caption  # Store caption for reference
             self.callback = callback
+            # Override the default button display
+            self._w = urwid.SelectableIcon(['  ', caption], 2)
 
         def keypress(self, size, key):
             debug_log(f"MenuButton keypress: size={size}, key={key}, caption={self.caption}")
