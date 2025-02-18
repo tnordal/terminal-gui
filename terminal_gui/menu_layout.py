@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import urwid
-from .utils import exit_program
+from .utils import exit_program, debug_log
 
 focus_map = {"heading": "focus heading", "options": "focus options", "line": "focus line"}
 
@@ -36,8 +36,15 @@ class CascadingBoxes(urwid.WidgetPlaceholder):
         super().__init__(urwid.SolidFill("/"))
         self.box_level = 0
         self.open_box(box)
+        # Enable mouse support
+        self.register_mouse_support()
+
+    def register_mouse_support(self) -> None:
+        debug_log("Registering mouse support for CascadingBoxes")
+        urwid.set_mouse_tracking(True)
 
     def open_box(self, box: urwid.Widget) -> None:
+        debug_log(f"Opening box at level {self.box_level}")
         self.original_widget = urwid.Overlay(
             urwid.LineBox(box),
             self.original_widget,
@@ -61,8 +68,11 @@ class CascadingBoxes(urwid.WidgetPlaceholder):
         return widget
 
     def keypress(self, size, key: str) -> str | None:
+        debug_log(f"CascadingBoxes keypress: size={size}, key={key}")
+        
         # Handle back navigation
         if key in ("esc", "left") and self.box_level > 1:
+            debug_log("Handling back navigation")
             self.original_widget = self.original_widget[0]
             self.box_level -= 1
             return None
@@ -76,6 +86,7 @@ class CascadingBoxes(urwid.WidgetPlaceholder):
             try:
                 # Try handling the keypress with the focused widget first
                 focused = current_box.get_focus()[0]
+                debug_log(f"Current focused widget: {focused}")
                 if focused:
                     key = focused.keypress(size, key)
                     if key is None:
@@ -83,12 +94,36 @@ class CascadingBoxes(urwid.WidgetPlaceholder):
                     
                 # If the key wasn't handled, try standard list navigation
                 if key in ('up', 'down', 'page up', 'page down'):
+                    debug_log(f"Handling list navigation key: {key}")
                     return current_box.keypress(size, key)
                 
             except AttributeError:
+                debug_log("AttributeError in keypress handling")
                 pass
 
         # If nothing else handled it, try the container
+        debug_log("Delegating to container")
         return self.original_widget.keypress(size, key)
+
+    def mouse_event(self, size, event, button, col, row, focus):
+        debug_log(f"CascadingBoxes mouse_event: size={size}, event={event}, button={button}, col={col}, row={row}, focus={focus}")
+        
+        # Get the current innermost widget
+        current_box = self.get_innermost_widget(self.original_widget)
+        if isinstance(current_box, urwid.LineBox):
+            current_box = self.get_innermost_widget(current_box.original_widget)
+        
+        # Try to handle the mouse event
+        if isinstance(current_box, urwid.ListBox):
+            try:
+                debug_log("Delegating mouse event to ListBox")
+                return current_box.mouse_event(size, event, button, col, row, focus)
+            except AttributeError:
+                debug_log("AttributeError in mouse event handling")
+                pass
+        
+        # If nothing else handled it, try the container
+        debug_log("Delegating mouse event to container")
+        return self.original_widget.mouse_event(size, event, button, col, row, focus)
 
 top = HorizontalBoxes()

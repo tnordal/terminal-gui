@@ -2,7 +2,38 @@ from __future__ import annotations
 
 import urwid
 import toml
+import logging
+import os
+from pathlib import Path
 from .config import load_config, get_menu_colors
+
+def setup_logger():
+    """Set up logging to both file and console"""
+    # Create logs directory if it doesn't exist
+    log_dir = Path.home() / '.terminal_gui' / 'logs'
+    log_dir.mkdir(parents=True, exist_ok=True)
+    
+    log_file = log_dir / 'terminal_gui.log'
+    
+    # Configure logging
+    logger = logging.getLogger('terminal_gui')
+    logger.setLevel(logging.DEBUG)
+    
+    # File handler - debug level
+    fh = logging.FileHandler(log_file)
+    fh.setLevel(logging.DEBUG)
+    fh_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(fh_formatter)
+    logger.addHandler(fh)
+    
+    return logger
+
+# Create logger instance
+logger = setup_logger()
+
+def debug_log(message: str):
+    """Helper function to log debug messages"""
+    logger.debug(message)
 
 def exit_program(button=None):
     raise urwid.ExitMainLoop()
