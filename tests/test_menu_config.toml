@@ -1,0 +1,21 @@
+[menu]
+title = "Test Menu"
+menu_type = "simple"
+
+[[menu.items]]
+name = "Option 1"
+command_type = "shell"
+command = "echo 'Option 1 selected'"
+
+[[menu.items]]
+name = "Option 2"
+command_type = "shell"
+command = "echo 'Option 2 selected'"
+
+[menu.colors]
+default_fg = "white"
+default_bg = "black"
+heading_fg = "yellow"
+heading_bg = "dark blue"
+options_fg = "white"
+options_bg = "dark gray"
