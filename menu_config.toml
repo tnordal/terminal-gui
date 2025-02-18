@@ -11,9 +11,9 @@ heading = "Main Menu"
 [[menu_structure.menu]]
 name = "Development"
 [[menu_structure.menu.submenu]]
-name = "Run Python Script"
-command.type = "python"
-command.value = "example_script"
+name = "Run hello.py"
+command.type = "shell"
+command.value = "python3 /home/backup/hello.py"
 
 [[menu_structure.menu.submenu]]
 name = "Run Tests"
@@ -37,7 +37,7 @@ name = "Scripts"
 [[menu_structure.menu.submenu]]
 name = "Backup Data"
 command.type = "shell"
-command.value = "tar -czf backup.tar.gz /path/to/data"
+command.value = "tar -czf backup.tar.gz /home/tn/projects"
 command.working_dir = "/home/backup"
 
 [[menu_structure.menu.submenu]]
