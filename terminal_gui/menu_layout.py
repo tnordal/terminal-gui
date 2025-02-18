@@ -27,7 +27,7 @@ class HorizontalBoxes(urwid.Columns):
             self.contents[:] = self.menu_stack.pop()
             self.focus_position = len(self.contents) - 1
         else:
-            raise urwid.ExitMainLoop()
+            exit_program()  # Use imported exit_program instead of raising directly
 
 class CascadingBoxes(urwid.WidgetPlaceholder):
     max_box_levels = 4

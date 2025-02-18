@@ -4,7 +4,7 @@ import typing
 import urwid
 from collections.abc import Callable, Hashable, Iterable
 
-from .menu_components import SubMenu, Choice, MenuButton
+from .menu_components import SubMenu, Choice
 from .menu_layout import CascadingBoxes, top
 from .utils import exit_program
 

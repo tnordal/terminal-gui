@@ -17,7 +17,8 @@ class Menu:
 
     def create_menu(self):
         if self.menu_type == 'simple':
-            return create_simple_menu(self.menu_structure, self.item_chosen, self.exit_program)
+            menu_widget = create_simple_menu(self.menu_structure, self.item_chosen, self.exit_program)
+            return menu_widget
         elif self.menu_type == 'cascading':
             return create_cascading_menu(self.menu_structure)
         elif self.menu_type == 'horizontal':
@@ -63,7 +64,7 @@ class Menu:
         else:
             return key
 
-    def exit_program(self, button):
+    def exit_program(self, button=None):
         raise urwid.ExitMainLoop()
 
 def main():

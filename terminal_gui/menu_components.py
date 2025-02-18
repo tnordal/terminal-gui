@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import typing
 import urwid
+from .utils import exit_program  # Add direct import of exit_program
 
 if typing.TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable
@@ -27,7 +28,7 @@ class SubMenu(urwid.WidgetWrap[MenuButton]):
         caption: str | tuple[Hashable, str],
         choices: Iterable[urwid.Widget],
     ) -> None:
-        from .menu_layout import top  # Avoid circular import
+        from .menu_layout import top  # Keep local import to avoid circular import
         super().__init__(MenuButton([caption, "\N{HORIZONTAL ELLIPSIS}"], self.open_menu))
         line = urwid.Divider("\N{LOWER ONE QUARTER BLOCK}")
         listbox = urwid.ListBox(
@@ -44,7 +45,7 @@ class SubMenu(urwid.WidgetWrap[MenuButton]):
         self.menu = urwid.AttrMap(listbox, "options")
 
     def open_menu(self, button: MenuButton) -> None:
-        from .menu_layout import top  # Avoid circular import
+        from .menu_layout import top  # Keep local import to avoid circular import
         top.open_box(self.menu)
 
 class Choice(urwid.WidgetWrap[MenuButton]):
@@ -52,12 +53,11 @@ class Choice(urwid.WidgetWrap[MenuButton]):
         self,
         caption: str | tuple[Hashable, str] | list[str | tuple[Hashable, str]],
     ) -> None:
-        from .utils import exit_program  # Avoid circular import
         super().__init__(MenuButton(caption, self.item_chosen))
         self.caption = caption
 
     def item_chosen(self, button: MenuButton) -> None:
-        from .menu_layout import top  # Avoid circular import
+        from .menu_layout import top  # Keep local import to avoid circular import
         response = urwid.Text(["  You chose ", self.caption, "\n"])
         done = MenuButton("Ok", exit_program)
         response_box = urwid.Filler(urwid.Pile([response, done]))
